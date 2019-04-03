@@ -1,5 +1,6 @@
 import cv2
 import recognize
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     image_path = r"./test_image/sudoku2.jpg"
@@ -28,20 +29,15 @@ if __name__ == "__main__":
         if h > len(final_image)/8 or w > len(final_image[0])/8:
             continue
 
-        if len(exact_contours[index]) == 9:
-            exact_contours.append([])
-            index += 1
         exact_contours[index].insert(0, cnt)
 
-        # for debug.
-        if i % 4 == 0:
-            cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        elif i % 4 == 1:
-            cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        elif i % 4 == 2:
-            cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        else:
-            cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 255, 0), 2)
+        if len(exact_contours[index]) == 9:
+            exact_contours[index] = sorted(exact_contours[index], key=lambda temp: cv2.boundingRect(temp)[0])
+            if len(exact_contours) == 9:
+                break
+            exact_contours.append([])
+            index += 1
+
     exact_contours.reverse()
 
     answer = [[] for i in range(9)]
@@ -49,11 +45,6 @@ if __name__ == "__main__":
     for r, row in enumerate(exact_contours):
         for cnt in row:
             x, y, w, h = cv2.boundingRect(cnt)
-
-            if h < len(final_image)/10 or w < len(final_image[0])/10:
-                continue
-            if h > len(final_image)/8 or w > len(final_image[0])/8:
-                continue
             cropped_image = final_image[y+2:y+h-2, x+2:x+w-2]
             data = recognize.tesseract_recognize(cropped_image)
 
@@ -66,10 +57,21 @@ if __name__ == "__main__":
             else:
                 answer[r].append(0)
 
-    for row in answer:
-        print("{}".format(row))
-
     # for debug, print image
-    cv2.imshow('image', final_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # for i, cnt in enumerate(contours):
+    #     x, y, w, h = cv2.boundingRect(cnt)
+    #     if h < len(final_image)/10 or w < len(final_image[0])/10:
+    #         continue
+    #     if h > len(final_image)/8 or w > len(final_image[0])/8:
+    #         continue
+    #     if i % 4 == 0:
+    #         cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    #     elif i % 4 == 1:
+    #         cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    #     elif i % 4 == 2:
+    #         cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    #     else:
+    #         cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 255, 0), 2)
+    # plt.imshow()
+    # plt.show()
+
