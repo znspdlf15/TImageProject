@@ -1,7 +1,13 @@
-import matplotlib.pyplot as plt
 import cv2
-from PIL import Image
 import pytesseract
+
+
+def tesseract_recognize(image, config='--psm 6'):
+    str = pytesseract.image_to_string(image, config=config)
+    print("tesseract recognize: {}".format(str))
+
+    return str
+
 
 if __name__ == "__main__":
     image_path = r"./test_image/sudoku.png"
@@ -13,6 +19,7 @@ if __name__ == "__main__":
     aa = cv2.erode(closing, (5, 5), iterations=1)
 
     cv2.imshow('image', cropped_image)
-    print(pytesseract.image_to_string(cropped_image, config='--psm 6'))
+
+    tesseract_recognize(cropped_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

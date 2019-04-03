@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
 import cv2
+import recognize
 
 if __name__ == "__main__":
     image_path = r"./test_image/sudoku.png"
@@ -32,6 +32,23 @@ if __name__ == "__main__":
             cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
         else:
             cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 255, 0), 2)
+
+    # need sort
+    
+    # recognize numbers
+    for i, cnt in enumerate(contours):
+        x, y, w, h = cv2.boundingRect(cnt)
+        if h < len(final_image)/10 or w < len(final_image[0])/10:
+            continue
+        if h > len(final_image)/8 or w > len(final_image[0])/8:
+            continue
+        cropped_image = final_image[y+2:y+h-2, x+2:x+w-2]
+        recognize.tesseract_recognize(cropped_image)
+
+        cv2.imshow('image', cropped_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
 
     # print image
     cv2.imshow('image', final_image)
