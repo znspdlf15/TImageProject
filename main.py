@@ -2,7 +2,7 @@ import cv2
 import recognize
 
 if __name__ == "__main__":
-    image_path = r"./test_image/sudoku.png"
+    image_path = r"./test_image/sudoku2.jpg"
     origin_image = cv2.imread(image_path)
     gray_image = cv2.cvtColor(origin_image, cv2.COLOR_BGR2GRAY)
     retval, thresholding_image = cv2.threshold(gray_image, 120, 230, cv2.ADAPTIVE_THRESH_MEAN_C)
@@ -18,12 +18,22 @@ if __name__ == "__main__":
 
     final_image = origin_image.copy()
     # final_image = cv2.drawContours(origin_image, contours, -1, (0, 255, 0), 1)
+
+    exact_contours = [[]]
+    index = 0
     for i, cnt in enumerate(contours):
         x, y, w, h = cv2.boundingRect(cnt)
         if h < len(final_image)/10 or w < len(final_image[0])/10:
             continue
         if h > len(final_image)/8 or w > len(final_image[0])/8:
             continue
+
+        if len(exact_contours[index]) == 9:
+            exact_contours.append([])
+            index += 1
+        exact_contours[index].insert(0, cnt)
+
+        # for debug.
         if i % 4 == 0:
             cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
         elif i % 4 == 1:
@@ -32,25 +42,34 @@ if __name__ == "__main__":
             cv2.rectangle(final_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
         else:
             cv2.rectangle(final_image, (x, y), (x + w, y + h), (255, 255, 0), 2)
+    exact_contours.reverse()
 
-    # need sort
-    
+    answer = [[] for i in range(9)]
     # recognize numbers
-    for i, cnt in enumerate(contours):
-        x, y, w, h = cv2.boundingRect(cnt)
-        if h < len(final_image)/10 or w < len(final_image[0])/10:
-            continue
-        if h > len(final_image)/8 or w > len(final_image[0])/8:
-            continue
-        cropped_image = final_image[y+2:y+h-2, x+2:x+w-2]
-        recognize.tesseract_recognize(cropped_image)
+    for r, row in enumerate(exact_contours):
+        for cnt in row:
+            x, y, w, h = cv2.boundingRect(cnt)
 
-        cv2.imshow('image', cropped_image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+            if h < len(final_image)/10 or w < len(final_image[0])/10:
+                continue
+            if h > len(final_image)/8 or w > len(final_image[0])/8:
+                continue
+            cropped_image = final_image[y+2:y+h-2, x+2:x+w-2]
+            data = recognize.tesseract_recognize(cropped_image)
 
+            if len(data) == 0 or not ('1' <= data[0] <= '9'):
+                answer[r].append(0)
+                continue
 
-    # print image
+            if 1 <= int(data) <= 9:
+                answer[r].append(int(data))
+            else:
+                answer[r].append(0)
+
+    for row in answer:
+        print("{}".format(row))
+
+    # for debug, print image
     cv2.imshow('image', final_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
